@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 
+from util import dna_util
 from util import dna_stats
 from util import parserUtil
 
@@ -10,6 +11,8 @@ if __name__ == "__main__":
     parser = parserUtil.fastaParser(l)
     parser.parse()
     s = dna_stats.DNAMultiStats(parser.sequences, parser.names)
-    (max_contents, max_name) = s.max_gc_contents()
-    print max_name
-    print max_contents * 100
+    (consensus_matrix, consensus_string) = s.consensus_dna()
+    print consensus_string
+    for k in dna_util.bases:
+        print k+":", " ".join(map(lambda x: str(x), consensus_matrix[k]))
+
