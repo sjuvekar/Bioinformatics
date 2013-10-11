@@ -1,3 +1,6 @@
+from collections import defaultdict
+import rna_util
+
 protein_mass = {
     "A":   71.03711,
     "C":   103.00919,
@@ -21,6 +24,10 @@ protein_mass = {
     "Y":   163.06333
 }
 
+possible_rnas = defaultdict(int)
+for v in rna_util.genetic_code.values():
+    possible_rnas[v] += 1
+
 """
 This class defines all attributes related to an Proteins. Weights, folding etc
 """
@@ -32,3 +39,10 @@ class ProteinUtil(object):
         
     def weight(self):
         return sum(map(lambda a: protein_mass[a], self.protein))
+
+    def possible_rna_sequences(self):
+	ans = 1
+	for aa in self.protein:
+	    ans = (ans * possible_rnas[aa]) % 1000000
+	ans = (ans * possible_rnas["Stop"]) % 1000000
+	return ans

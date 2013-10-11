@@ -65,6 +65,11 @@ genetic_code = {
     "GGG": "G" 
 }        
 
+start_codon = "AUG"
+stop_codon1 = "UAG"
+stop_codon2 = "UGA"
+stop_codon3 = "UAA"
+
 """
 This class defines all attributes related to an RNA. Translation, mRNA etc.
 """

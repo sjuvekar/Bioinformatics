@@ -1,6 +1,7 @@
 """
 A class containing all stats for input DNA, including the number of base-pairs, percents etc.
 """
+import pandas
 import re
 import dna_util
 from dna_util import DNAUtil
@@ -10,7 +11,7 @@ class DNAStats(DNAUtil):
 
     def __init__(self, input_dna, fasta_name="Rosalind_"):
         DNAUtil.__init__(self, input_dna, fasta_name)
-
+        self.length = len(self.DNA)
     """
     Returns a dict containing counts of all nucleotides
     """
@@ -34,6 +35,19 @@ class DNAStats(DNAUtil):
     """
     def find_motif(self, text):
         return [m.start()+1 for m in re.finditer("(?={0})".format(text), self.DNA)]
+
+    """
+    Finds the p-distance, i.e. proportion of the bases that differ in two DNAs
+    """
+    def p_distance(self, other):
+        total = float(self.length)
+        mismatch = 0.
+        for i in range(self.length):
+            if self.DNA[i] != other.DNA[i]:
+                mismatch += 1.
+        return mismatch / total
+                
+
 """
 A class containing SNA stats over multiple DNAs, like hamming distance, alignment etc
 """
@@ -49,6 +63,7 @@ class DNAMultiStats:
         self.dna_stats = list()
         for i in range(len(input_dnas)):
             self.dna_stats.append(DNAStats(input_dnas[i], input_names[i]))
+	self.num_dnas = len(self.dna_stats)
 
 
     """
@@ -69,10 +84,10 @@ class DNAMultiStats:
     """
     def hamming_distance(self):
        n_mismatch = 0
-       dna_length = len(self.dna_stats[0].DNA)
+       dna_length = self.dna_stats[0].length
        for i in range(dna_length):
            curr_base = self.dna_stats[0].DNA[i]
-           for j in range(1, len(self.dna_stats)):
+           for j in range(1, self.num_dnas):
                if self.dna_stats[j].DNA[i] != curr_base:
                    n_mismatch += 1
                    break
@@ -83,10 +98,10 @@ class DNAMultiStats:
     """
     def consensus_dna(self):
         consensus_matrix = dict(zip(dna_util.bases, [[]] * len(dna_util.bases)))
-        dna_length = len(self.dna_stats[0].DNA)
+        dna_length = self.dna_stats[0].length
         for i in range(dna_length):
             curr_bases = defaultdict(int)
-            for j in range(len(self.dna_stats)):
+            for j in range(self.num_dnas):
                 curr_bases[self.dna_stats[j].DNA[i]] += 1
             for base in consensus_matrix.keys():
                 consensus_matrix[base] = consensus_matrix[base] + [curr_bases[base]]
@@ -95,7 +110,15 @@ class DNAMultiStats:
             consensus_string += max(consensus_matrix.keys(), key=lambda a: consensus_matrix[a][i])
         return (consensus_matrix, consensus_string)
 
+
     """
-    Returns the longest_consecutive substring of all sequences
+    Returns the p-distance matrix: (i, j) gives p-distance between two DNAs
     """
-    
+    def p_distance_matrix(self):
+        ret = pandas.DataFrame(columns = range(self.num_dnas), index = range(self.num_dnas))
+        for i in range(self.num_dnas):
+            ret[i][i] = 0.
+            for j in range(i+1, self.num_dnas):
+                ret[i][j] = self.dna_stats[i].p_distance(self.dna_stats[j])
+		ret[j][i] = ret[i][j]
+        return ret
