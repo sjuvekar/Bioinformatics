@@ -1,5 +1,6 @@
 import dna_util
 from dna_transformer import DNATransformer
+from string_mutator import StringMutator
 from collections import defaultdict
 
 class OriCFinder(DNATransformer):
@@ -8,7 +9,8 @@ class OriCFinder(DNATransformer):
     """
     def __init__(self, input_dna, fasta_name = "Rosalind_"):
         DNATransformer.__init__(self, input_dna, fasta_name)
-
+        self.stringMutator = StringMutator()
+        
     def frequent_kmers(self, k):
         """
         Finds the most frequent kemrs
@@ -109,3 +111,13 @@ class OriCFinder(DNATransformer):
                 matches.append(i)
         return matches
                                               
+
+    def frequent_words_with_mismatch(self, kmer_len, mismatch_thresh):
+        frequent_words = defaultdict(int)
+        
+        for i in range(len(self.DNA)-kmer_len+1):
+            mutations = self.stringMutator.lengthKMutations(self.DNA[i:i+kmer_len], mismatch_thresh)
+            for m in mutations:
+                frequent_words[m] += 1
+                        
+        return frequent_words

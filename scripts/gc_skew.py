@@ -2,9 +2,6 @@
 import sys
 from util import oriC_finder
 
-def min_skew(seq):
-
-
 if __name__ == "__main__":
     f = open(sys.argv[1])
     seq = f.readline().strip()
