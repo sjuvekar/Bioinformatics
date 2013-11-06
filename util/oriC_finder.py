@@ -1,0 +1,111 @@
+import dna_util
+from dna_transformer import DNATransformer
+from collections import defaultdict
+
+class OriCFinder(DNATransformer):
+    """
+    A class designed to find the origin of replicator (oriC) in given DNA
+    """
+    def __init__(self, input_dna, fasta_name = "Rosalind_"):
+        DNATransformer.__init__(self, input_dna, fasta_name)
+
+    def frequent_kmers(self, k):
+        """
+        Finds the most frequent kemrs
+        """
+        d = defaultdict(int)
+        for i in range(len(self.DNA)-k):
+            key = self.DNA[i:i+k]
+            d[key] += 1
+        max_freq = max(d.values())
+        kmers = list()
+        for k in d.keys():
+            if d[k] == max_freq:
+                kmers.append(k)
+        return kmers
+
+    
+    def pattern_positions(self, pattern):
+        """
+        Find all places in DNA where pattern occurs
+        """
+        positions = list()
+        pat_len = len(pattern)
+        for i in range(len(self.DNA)-pat_len):
+            if self.DNA[i:i+pat_len] == pattern:
+                positions.append(i)
+        return positions
+
+
+    def find_clumps(self, kmer_len, window_len, freq):
+        """
+        Find the clumps inside entire DNA having size window_len where there
+        is atleast one seq of kmer_len occuring with freq
+        """
+        small_dna = OriCFinder(self.DNA[0:window_len])
+        kmer_dict = small_dna.kmer_freq(kmer_len)
+        freq_kmers_dict = dict()
+        for k in kmer_dict.keys():
+            if kmer_dict[k] >= freq:
+                freq_kmers_dict[k] = 0
+        # Now shift the window one character at a time and modify kmer_dict
+        for i in range(window_len, len(self.DNA)):
+            # expel old sequence
+            expelled_ind = i - window_len
+            expelled_seq = self.DNA[expelled_ind:expelled_ind+kmer_len]
+            kmer_dict[expelled_seq] -= 1
+            # Add new sequence
+            new_seq = self.DNA[i-kmer_len+1:i+1]
+            try:
+                kmer_dict[new_seq] += 1
+            except:
+                kmer_dict[new_seq] = 1
+            if kmer_dict[new_seq] >= freq:
+                freq_kmers_dict[new_seq] = 0
+        #Done. now return the dict
+        return freq_kmers_dict
+    
+
+    def min_gc_skew(self):
+        """
+        Finds the positions with the minimum GC skew (#G - #C)
+        """
+        skew = 0
+        minskew = len(self.DNA)
+        skew_index_dict = dict()
+        for i in range(len(self.DNA)):
+            if self.DNA[i] == "C":
+                skew -= 1
+            elif self.DNA[i] == "G":
+                skew +=1
+            # Update min
+            if skew < minskew:
+                minskew = skew
+            # update skew dict
+            try:
+                skew_index_dict[skew] += [i]
+            except:
+                skew_index_dict[skew] = [i]
+        # Done. Now return the list of indices
+        return skew_index_dict[minskew]
+
+
+    def approx_matches(self, pattern, mismatch_thresh):
+        """
+        Find approx matching positions of pattern in current DNA
+        """
+        def mismatches(str1, str2):
+            ans = 0
+            for i in range(len(str1)):
+                if str1[i] != str2[i]:
+                    ans += 1
+            return ans
+
+        matches = list()
+        pattern_length = len(pattern)
+        for i in range(len(self.DNA)-pattern_length+1):
+            mismatched_positions = mismatches(pattern, self.DNA[i:i+pattern_length])
+            if mismatched_positions <= mismatch_thresh:
+                matches.append(i)
+        return matches
+                                              
