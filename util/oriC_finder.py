@@ -113,11 +113,31 @@ class OriCFinder(DNATransformer):
                                               
 
     def frequent_words_with_mismatch(self, kmer_len, mismatch_thresh):
+        """
+        Find the most frequent kmers in this DNA with at most mismatch_thresh mutations
+        """
         frequent_words = defaultdict(int)
         
         for i in range(len(self.DNA)-kmer_len+1):
             mutations = self.stringMutator.lengthKMutations(self.DNA[i:i+kmer_len], mismatch_thresh)
             for m in mutations:
                 frequent_words[m] += 1
+                        
+        return frequent_words
+
+
+    def frequent_words_with_mismatch_and_reverse_complement(self, kmer_len, mismatch_thresh):
+        """
+        Find the most frequent kmers in this DNA with at most mismatch_thresh mutations and counting reverse complements
+        """
+        frequent_words = defaultdict(int)
+        
+        for i in range(len(self.DNA)-kmer_len+1):
+            mutations = self.stringMutator.lengthKMutations(self.DNA[i:i+kmer_len], mismatch_thresh)
+            for m in mutations:
+                frequent_words[m] += 1
+                #Compute reverse complement
+                reverse_complement = DNATransformer(m).reverse_complement()
+                frequent_words[reverse_complement] += 1
                         
         return frequent_words
