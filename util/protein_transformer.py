@@ -84,7 +84,7 @@ class ProteinTransformer(ProteinUtil):
             
 
     
-    def leaderboard_cyclopeptide_sequence(self, leaderboard_len, spectrum):
+    def leaderboard_cyclopeptide_sequence(self, leaderboard_len, spectrum, protein_masses):
         """
         This is a heuristic algorithm that keeps top-n approx matching spectrums to the given spectrum
         and returns the best scoring of all of them.
@@ -98,10 +98,10 @@ class ProteinTransformer(ProteinUtil):
         max_spectrum_weight = max(spectrum)
         
         # Maintain the leaderboard
-        leaderboard = [(0, "", dict())]
+        leaderboard = [(0, list(), dict())]
         
         # Maintain the max score
-        best_peptide = ""
+        best_peptide = list()
         max_score = 0
         min_score = 0
 
@@ -111,19 +111,19 @@ class ProteinTransformer(ProteinUtil):
             for old_seq in leaderboard:
                 old_score = old_seq[0]
                 old_acid = old_seq[1]
-                old_acid_weight = protein_util.ProteinUtil(old_acid).int_weight()
-                for a in protein_util.amino_acids_by_weight:
+                old_acid_weight = sum(old_acid)
+                for a in protein_masses:
                     old_dict = copy.deepcopy(old_seq[2])
-                    new_acid = old_acid + a
-                    new_acid_weight = old_acid_weight + protein_util.protein_mass_int[a]
+                    new_acid = old_acid + [a]
+                    new_acid_weight = old_acid_weight + a
                     if new_acid_weight > max_spectrum_weight:
                         continue
                     # Find intersection
-                    suffixes = [old_acid[i:]+a for i in range(len(old_acid)+1)]
-                    prefixes = [a+old_acid[:i] for i in range(len(old_acid)+1)]
+                    suffixes = [old_acid[i:]+[a] for i in range(len(old_acid)+1)]
+                    prefixes = [[a]+old_acid[:i] for i in range(len(old_acid)+1)]
                                             
                     for i in suffixes + prefixes:
-                        a_weight = protein_util.ProteinUtil(i).int_weight()
+                        a_weight = sum(i)
                         if a_weight in spectrum_dict:
                             if a_weight not in old_dict:
                                 old_dict[a_weight] = 1
@@ -142,7 +142,8 @@ class ProteinTransformer(ProteinUtil):
                         min_score = min(new_leaderboard)[0]
                         if old_min[0] == max_score:
                             heapq.heappush(new_leaderboard, old_min)
-            
+           
+            print max_score 
             leaderboard = copy.deepcopy(new_leaderboard)
             
         return best_peptide

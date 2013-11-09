@@ -9,6 +9,6 @@ if __name__ == "__main__":
     leaderboard_len = int(f.readline().strip())
     l = f.readline().strip()
     spectrum = map(lambda a: int(a), l.split())
-    best_peptide = p.leaderboard_cyclopeptide_sequence(leaderboard_len, spectrum)
-    mass = map(lambda a: str(protein_util.protein_mass_int[a]), best_peptide)
+    best_peptide = p.leaderboard_cyclopeptide_sequence(leaderboard_len, spectrum, protein_util.protein_mass_int.values())
+    mass = map(lambda a: str(a), best_peptide)
     print "-".join(mass)
