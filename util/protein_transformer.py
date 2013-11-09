@@ -121,7 +121,8 @@ class ProteinTransformer(ProteinUtil):
                     # Find intersection
                     suffixes = [old_acid[i:]+[a] for i in range(len(old_acid)+1)]
                     prefixes = [[a]+old_acid[:i] for i in range(len(old_acid)+1)]
-                                            
+                    prefixes.remove([a])
+                    
                     for i in suffixes + prefixes:
                         a_weight = sum(i)
                         if a_weight in spectrum_dict:
@@ -142,7 +143,7 @@ class ProteinTransformer(ProteinUtil):
                         min_score = min(new_leaderboard)[0]
                         if old_min[0] == max_score:
                             heapq.heappush(new_leaderboard, old_min)
-           
+                                                
             print max_score 
             leaderboard = copy.deepcopy(new_leaderboard)
             
@@ -160,3 +161,31 @@ class ProteinTransformer(ProteinUtil):
                 if diff > 0:
                     ret.append(diff)
         return ret
+
+
+    def convolution_cyclopeptide_sequence(self, spectrum, convolution_len, leaderboard_len):
+        """
+        Compute the sequence by 1) first computing convolution spectrum 2) taking convolution_len most
+        frequent masses in spectrum and 3) Using leaderboard algorithm with only those masses
+        """
+        convolution_dict = defaultdict(int)
+        for i in range(len(spectrum)):
+            for j in range(i+1, len(spectrum)):
+                diff = abs(spectrum[j] - spectrum[i])
+                if diff >= 57 and diff <= 200:
+                    convolution_dict[diff] += 1
+   
+        print convolution_dict
+        # Sort the convolution spectrum find top-most entries
+        sorted_convolution_dict = sorted(convolution_dict, key= lambda a: convolution_dict[a], reverse=True)
+        convolution_list = list()
+        for i in range(min(convolution_len, len(convolution_dict))):
+            convolution_list.append(sorted_convolution_dict[i])
+        # Add ties
+        i = convolution_len
+        while i < len(sorted_convolution_dict) and convolution_dict[sorted_convolution_dict[i]] == convolution_dict[sorted_convolution_dict[i-1]]:
+            convolution_list.append(sorted_convolution_dict[i])
+            i += 1
+       
+        # Done, now run leaderboard
+        return self.leaderboard_cyclopeptide_sequence(leaderboard_len, spectrum, convolution_list)
