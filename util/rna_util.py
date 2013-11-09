@@ -65,6 +65,8 @@ genetic_code = {
     "GGG": "G" 
 }        
 
+complement_dict = {'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A'}
+
 start_codon = "AUG"
 stop_codon1 = "UAG"
 stop_codon2 = "UGA"
