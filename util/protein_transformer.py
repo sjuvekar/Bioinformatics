@@ -144,7 +144,7 @@ class ProteinTransformer(ProteinUtil):
                         if old_min[0] == max_score:
                             heapq.heappush(new_leaderboard, old_min)
                                                 
-            print max_score 
+            print max_score, best_peptide 
             leaderboard = copy.deepcopy(new_leaderboard)
             
         return best_peptide
