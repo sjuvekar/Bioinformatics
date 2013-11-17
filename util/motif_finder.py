@@ -41,3 +41,29 @@ class MotifFinder(OriCFinder):
         return common_motifs
             
         
+    def min_mismatch(self, kmer):
+        """
+        Finds the minimum mismatch berween kmger and any position in string
+        """
+        mismatch = len(self.DNA)
+        kmer_len = len(kmer)
+        for i in range(len(self.DNA)-kmer_len+1):
+            mismatched_positions = self.mismatches(kmer, self.DNA[i:i+kmer_len])
+            if mismatched_positions < mismatch:
+                mismatch = mismatched_positions
+        return mismatch
+
+    def median_kmer(self, other_dnas, k):
+        """
+        Find the median kmer, i.e. the one reducing the distance from every DNA
+        """
+        best_distance = k * (1 + len(other_dnas))
+        best_kmer = ""
+        for kmer in self.stringMutator.lengthKKmers(k):
+            distance = self.min_mismatch(kmer)
+            for dna in other_dnas:
+                distance += dna.min_mismatch(kmer)
+            if distance < best_distance:
+                best_distance = distance
+                best_kmer = kmer
+        return best_kmer

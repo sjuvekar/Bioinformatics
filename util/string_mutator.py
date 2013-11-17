@@ -4,6 +4,9 @@ import dna_util
 class StringMutator:
     
     def lengthKMutations(self, str, k):
+        """
+        Mutations of a give strings with all strings differing from str by at most k letters
+        """
         if k == 0 or str =="":
             return [str]
         mutations = []
@@ -23,3 +26,18 @@ class StringMutator:
         
         # Return mutations
         return mutations
+
+    
+    def lengthKKmers(self, k):
+        """
+        Returns all length-k kmers
+        """
+        if (k == 1):
+            return dna_util.bases
+        ans = list()
+        smallerKmers = self.lengthKKmers(k-1)
+        for s in smallerKmers:
+            for c in dna_util.bases:
+                ans.append(c + s)
+        return ans
+            

@@ -92,21 +92,23 @@ class OriCFinder(DNATransformer):
         return skew_index_dict[minskew]
 
 
+    def mismatches(self, str1, str2):
+        ans = 0
+        for i in range(len(str1)):
+            if str1[i] != str2[i]:
+                ans += 1
+        return ans
+
+
     def approx_matches(self, pattern, mismatch_thresh):
         """
         Find approx matching positions of pattern in current DNA
         """
-        def mismatches(str1, str2):
-            ans = 0
-            for i in range(len(str1)):
-                if str1[i] != str2[i]:
-                    ans += 1
-            return ans
 
         matches = list()
         pattern_length = len(pattern)
         for i in range(len(self.DNA)-pattern_length+1):
-            mismatched_positions = mismatches(pattern, self.DNA[i:i+pattern_length])
+            mismatched_positions = self.mismatches(pattern, self.DNA[i:i+pattern_length])
             if mismatched_positions <= mismatch_thresh:
                 matches.append(i)
         return matches
