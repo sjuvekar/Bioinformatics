@@ -53,6 +53,7 @@ class MotifFinder(OriCFinder):
                 mismatch = mismatched_positions
         return mismatch
 
+
     def median_kmer(self, other_dnas, k):
         """
         Find the median kmer, i.e. the one reducing the distance from every DNA
@@ -65,5 +66,33 @@ class MotifFinder(OriCFinder):
                 distance += dna.min_mismatch(kmer)
             if distance < best_distance:
                 best_distance = distance
+                best_kmer = kmer
+        return best_kmer
+
+
+    def kmer_probability(self, kmer, profile):
+        """
+        Gives probability of kmer = product of probability of individual character. The profile is
+        k X 4 pandas dataframe indexed by ['A', 'C', 'G', 'T'] columns
+        """
+        prob = 1
+        for i in range(len(kmer)):
+            char = kmer[i]
+            prob *= profile[char][i]
+        return prob
+
+    
+    def profile_most_probable_kmer(self, k, profile):
+        """
+        Find the kmer that has the maximum probability of appearing in profile. The profile is
+        k X 4 pandas dataframe indexed by ['A', 'C', 'G', 'T'] columns
+        """
+        max_prob = 0
+        best_kmer = ""
+        for i in range(len(self.DNA)-k+1):
+            kmer = self.DNA[i:i+k]
+            prob = self.kmer_probability(kmer, profile)
+            if prob > max_prob:
+                max_prob = prob
                 best_kmer = kmer
         return best_kmer
