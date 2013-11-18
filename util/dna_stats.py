@@ -36,15 +36,23 @@ class DNAStats(DNAUtil):
     def find_motif(self, text):
         return [m.start()+1 for m in re.finditer("(?={0})".format(text), self.DNA)]
 
+    def hamming_distance(self, other):
+        """
+        Finds the number of places this DNA differs from other
+        """
+        distance = 0
+        for i in range(len(self.DNA)):
+            if self.DNA[i] != other.DNA[i]:
+                distance += 1
+        return distance
+
+
     """
     Finds the p-distance, i.e. proportion of the bases that differ in two DNAs
     """
     def p_distance(self, other):
         total = float(self.length)
-        mismatch = 0.
-        for i in range(self.length):
-            if self.DNA[i] != other.DNA[i]:
-                mismatch += 1.
+        mismatch = self.hamming_distance(other)
         return mismatch / total
                 
 
