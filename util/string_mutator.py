@@ -1,3 +1,4 @@
+import bisect
 import copy
 import dna_util
 
@@ -41,3 +42,14 @@ class StringMutator:
                 ans.append(c + s)
         return ans
             
+
+    def lexicographic_kmers(self, string, k):
+        """
+        Returns all kmers of length k lexicographically sorted
+        """
+        ret = list()
+        for i in range(len(string)-k+1):
+            kmer = string[i:i+k]
+            index = bisect.bisect_left(ret, kmer)
+            ret.insert(index, kmer)
+        return ret

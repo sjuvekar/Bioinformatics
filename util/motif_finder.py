@@ -175,5 +175,43 @@ class MotifFinder(OriCFinder):
             new_score = self.score(motif)
             if new_score < best_score:
                 best_motif = copy.deepcopy(motif)
+                best_score = new_score
             else:
                 return best_motif
+
+    
+    def return_random_index(self, probs):
+        p = probs / sum(probs)
+        r = numpy.random.uniform()
+        cum_sum = 0
+        for i in range(len(p)):
+            cum_sum += p[i]
+            if cum_sum >= r: 
+                return i
+
+    
+    def gibbs_sampler_search(self, dnas, k, N):
+        i = numpy.random.randint(len(self.DNA)-k+1)
+        best_motif = [ self.DNA[i:i+k] ]
+        for i in range(len(dnas)):
+            rand_i = numpy.random.randint(len(self.DNA)-k+1)
+            best_motif.append(dnas[i].DNA[rand_i:rand_i+k])
+        motif = copy.deepcopy(best_motif)
+
+        for iii in range(N):
+            i = numpy.random.randint(len(motif))
+            profile_so_far = self.profile(motif[:i] + motif[i+1:], True)
+            if i == 0:
+                effective_dna = self.DNA
+            else:
+                effective_dna = dnas[i-1].DNA
+            prob = list()
+            for ind in range(len(effective_dna)-k+1):
+                prob.append(self.kmer_probability(effective_dna[ind:ind+k], profile_so_far))
+            j = self.return_random_index(numpy.array(prob))
+            motif[i] = effective_dna[j:j+k]
+            best_score = self.score(best_motif)
+            new_score = self.score(motif)
+            if new_score < best_score:
+                best_motif = copy.deepcopy(motif)
+        return best_motif
