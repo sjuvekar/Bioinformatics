@@ -29,16 +29,16 @@ class StringMutator:
         return mutations
 
     
-    def lengthKKmers(self, k):
+    def lengthKKmers(self, k, bases=dna_util.bases):
         """
         Returns all length-k kmers
         """
         if (k == 1):
-            return dna_util.bases
+            return bases
         ans = list()
-        smallerKmers = self.lengthKKmers(k-1)
+        smallerKmers = self.lengthKKmers(k-1, bases)
         for s in smallerKmers:
-            for c in dna_util.bases:
+            for c in bases:
                 ans.append(c + s)
         return ans
             
