@@ -8,7 +8,20 @@ class EulerUtil(object):
         """
         self.adj_list = copy.deepcopy(adj_list)
         self.orig_adj_list = adj_list
+        self.inverse_adj_list = dict()
         self.neighbor_offset = dict()
+
+    def construct_inverse_adj_list(self):
+        """
+        Create inverse of adj_list by inverting edges
+        """
+        for a in self.adj_list.keys():
+            for n in self.adj_list[a]:
+                try:
+                    self.inverse_adj_list[n] += [a]
+                except:
+                    self.inverse_adj_list[n] = [a]
+
 
     def approx_euler_starting_from(self, start_vertex, end_vertex = None):
         """
@@ -24,7 +37,7 @@ class EulerUtil(object):
         ret_list = [start_vertex]
         curr_vertex = start_vertex
         next_vertex = None
-        while next_vertex != end_vertex:
+        while next_vertex != end_vertex and curr_vertex in self.adj_list.keys():
             # Find neighbors
             neighbors = self.adj_list[curr_vertex]
 
@@ -83,6 +96,7 @@ class EulerUtil(object):
         Find the start and end vertex of Euler path. Start vertex has one more outgoing edge ans end vertex has one more incoming edge
         it stores this information in neighbor_offset dict
         """
+        self.neighbor_offset = dict()
         for n in self.adj_list.keys():
             self.neighbor_offset[n] = len(self.adj_list[n])
         for n in self.adj_list.keys():
@@ -127,3 +141,56 @@ class EulerUtil(object):
         for i in range(1, len(path)):
             ans += path[i][-1]
         return ans
+
+    
+    def build_contig_graph(self):
+        """
+        Builds a contig geaph with all vertices with more than one incoming and outgoing edges
+        duplicated (in+ out) times
+        """
+        contig_graph = dict()
+        self.construct_inverse_adj_list()
+        vertex_multiplicities = dict()
+        for a in self.adj_list.keys():
+            fwd_neighbor_count = len(self.adj_list[a])
+            vertex_multiplicities[a] = fwd_neighbor_count
+        for i in self.inverse_adj_list.keys():
+            inv_neighbor_count = len(self.inverse_adj_list[i])
+            try:
+                vertex_multiplicities[i] += inv_neighbor_count
+            except:
+                vertex_multiplicities[i] = inv_neighbor_count
+            
+        # Modify to remove simple vertices
+        for v in vertex_multiplicities.keys():
+            if (v not in self.adj_list.keys() or len(self.adj_list[v]) == 1) and (v not in self.inverse_adj_list.keys() or len(self.inverse_adj_list[v]) == 1):
+                vertex_multiplicities[v] = 0
+
+        # Build the graph now
+        for a in self.adj_list.keys():
+            for n in self.adj_list[a]:
+                new_a = (a, vertex_multiplicities[a])
+                new_n = (n, vertex_multiplicities[n])
+                try:
+                    contig_graph[new_a] += [ new_n ]
+                except:
+                    contig_graph[new_a] = [new_n]
+                if vertex_multiplicities[n] > 0:
+                    vertex_multiplicities[n] -= 1
+                if vertex_multiplicities[a] > 0:
+                    vertex_multiplicities[a] -= 1
+
+        return contig_graph
+    
+
+    def all_contigs(self):
+        """
+        return all contigs for the graph
+        """
+        contigs = list()
+        self.adj_list = self.build_contig_graph()
+        while len(self.adj_list) > 0:
+            (start_vertex, end_vertex) = self.find_euler_start_end()
+            ret_list = self.approx_euler_starting_from(start_vertex, end_vertex)
+            contigs.append(ret_list)
+        return contigs
